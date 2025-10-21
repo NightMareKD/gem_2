@@ -191,7 +191,6 @@ function Page() {
                 </motion.div>
               </motion.div>
 
-              {/* Redesigned Right Section */}
               <motion.div
                 initial={{ opacity: 0, x: 50 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -201,7 +200,7 @@ function Page() {
               >
                 {/* Premium Heritage Card */}
                 <motion.div
-                  className="bg-gradient-to-br from-amber-50/95 via-orange-50/95 to-red-50/95 backdrop-blur-2xl rounded-3xl border border-amber-200/50 shadow-2xl overflow-hidden relative mb-8"
+                  className="bg-gradient-to-br from-slate-900/95 via-purple-900/95 to-indigo-900/95 backdrop-blur-2xl rounded-3xl border border-purple-500/30 shadow-2xl overflow-hidden relative mb-8"
                   whileHover={{ scale: 1.02, y: -5 }}
                   transition={{ duration: 0.3 }}
                 >
@@ -218,17 +217,17 @@ function Page() {
                       <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full blur-lg opacity-60" />
                       <Crown
                         size={64}
-                        className="relative z-10 text-amber-600 mx-auto"
+                        className="relative z-10 text-amber-400 mx-auto"
                       />
                     </motion.div>
 
-                    <h2 className="text-3xl md:text-5xl font-black bg-gradient-to-r from-slate-800 to-amber-800 bg-clip-text text-transparent mb-4">
+                    <h2 className="text-3xl md:text-5xl font-black bg-gradient-to-r from-white via-amber-200 to-orange-300 bg-clip-text text-transparent mb-4">
                       Royal Gems Institute
                     </h2>
 
                     <div className="w-24 h-1 bg-gradient-to-r from-amber-400 to-orange-500 mx-auto mb-6 rounded-full" />
 
-                    <p className="text-2xl text-slate-700 leading-relaxed max-w-lg mx-auto mb-8">
+                    <p className="text-2xl text-slate-200 leading-relaxed max-w-lg mx-auto mb-8">
                       Discover the ancient secrets of Sri Lankan gemstones,
                       where every stone tells a story of heritage,
                       craftsmanship, and timeless beauty.
@@ -242,10 +241,10 @@ function Page() {
                         { number: "15K+", label: "Happy Clients" },
                       ].map((stat, i) => (
                         <div key={i} className="text-center">
-                          <div className="text-2xl font-black bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                          <div className="text-2xl font-black bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
                             {stat.number}
                           </div>
-                          <div className="text-sm text-slate-600 font-medium">
+                          <div className="text-sm text-slate-300 font-medium">
                             {stat.label}
                           </div>
                         </div>
@@ -256,7 +255,7 @@ function Page() {
                     <div className="flex flex-col sm:flex-row gap-4">
                       <motion.button
                         onClick={() => exploreBtnHandler()}
-                        className="flex-1 relative bg-gradient-to-r from-slate-800 to-slate-900 text-white px-6 py-4 rounded-2xl font-bold text-lg hover:from-slate-700 hover:to-slate-800 transition-all duration-300 overflow-hidden group"
+                        className="flex-1 relative bg-gradient-to-r from-slate-700 to-slate-800 text-white px-6 py-4 rounded-2xl font-bold text-lg hover:from-slate-600 hover:to-slate-700 transition-all duration-300 overflow-hidden group border border-slate-600/50"
                         whileHover={{ scale: 1.05, y: -2 }}
                         whileTap={{ scale: 0.95 }}
                       >
