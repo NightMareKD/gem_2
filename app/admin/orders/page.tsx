@@ -389,7 +389,7 @@ export default function OrdersPage() {
       </Card>
 
       {/* Orders Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 scr-y">
         {filteredOrders.map((order, index) => (
           <Card
             key={order._id}
