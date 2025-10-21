@@ -227,7 +227,7 @@ const AcademyPage = () => {
   };
 
   return (
-    <div className=" bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 relative lg:h-screen lg:overflow-y-scroll lg:snap-y  scroll-smooth hide-scrollbar ">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 relative overflow-hidden">
       {/* Enhanced background elements */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <motion.div
@@ -281,7 +281,7 @@ const AcademyPage = () => {
         ))}
       </div>
 
-      <div className="relative z-10">
+      <div className="h-screen overflow-y-scroll snap-y snap-mandatory scroll-smooth hide-scrollbar relative z-10">
         {/* Hero Section */}
         <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 h-screen flex items-center snap-start">
           <div className="max-w-7xl mx-auto text-center">

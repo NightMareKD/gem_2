@@ -47,7 +47,7 @@ function Page() {
   };
 
   return (
-    <div className=" bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 relative lg:h-screen lg:overflow-y-scroll lg:snap-y  scroll-smooth hide-scrollbar">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 relative overflow-hidden">
       {/* Floating background elements */}
       <div className="fixed inset-0 pointer-events-none z-0">
         {/* Animated geometric shapes */}
@@ -79,7 +79,7 @@ function Page() {
         />
       </div>
 
-      <div className="relative z-10">
+      <div className="h-screen overflow-y-scroll snap-y snap-mandatory scroll-smooth hide-scrollbar relative z-10">
         {/* ===================== SECTION 1 ===================== */}
         <section className="min-h-screen relative overflow-hidden py-20 lg:snap-start pt-[16em]">
           {/* Particle system with fixed positions */}
