@@ -5,10 +5,15 @@
 
 import { Product, Order, OrderItem } from "../types";
 import { getRepositoryFactory } from "@/lib/repositories";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabase";
 
-const gemRepository = getRepositoryFactory(supabase).getGemRepository();
-const orderRepository = getRepositoryFactory(supabase).getOrderRepository();
+function getGemRepository() {
+  return getRepositoryFactory(getSupabaseClient()).getGemRepository();
+}
+
+function getOrderRepository() {
+  return getRepositoryFactory(getSupabaseClient()).getOrderRepository();
+}
 
 // ✅ Products (Gems)
 export async function getProducts(): Promise<Product[]> {
@@ -79,7 +84,7 @@ export async function createProduct(
       origin: product.specifications?.origin,
     };
 
-    const gem = await gemRepository.create(gemData);
+    const gem = await getGemRepository().create(gemData);
 
     return {
       id: gem.id!,
@@ -138,7 +143,7 @@ export async function updateProduct(
       if (product.specifications.origin !== undefined) updateData.origin = product.specifications.origin;
     }
 
-    const gem = await gemRepository.update(id, updateData);
+    const gem = await getGemRepository().update(id, updateData);
 
     if (!gem) {
       throw new Error('Failed to update product');
@@ -177,7 +182,7 @@ export async function updateProduct(
 
 export async function deleteProduct(id: string): Promise<{ message: string }> {
   try {
-    await gemRepository.delete(id);
+    await getGemRepository().delete(id);
     return { message: 'Product deleted successfully' };
   } catch (error) {
     console.error('Error deleting product:', error);
@@ -209,7 +214,7 @@ function mapRepositoryOrderToApiOrder(repoOrder: any): Order {
 export async function getOrders(): Promise<Order[]> {
   try {
     // This would need user context, for now return empty or implement with auth
-    const orders = await orderRepository.findAll(100, 0);
+    const orders = await getOrderRepository().findAll(100, 0);
     return orders.map(mapRepositoryOrderToApiOrder);
   } catch (error) {
     console.error('Error fetching orders:', error);
@@ -219,7 +224,7 @@ export async function getOrders(): Promise<Order[]> {
 
 export async function getOrderById(id: string): Promise<Order> {
   try {
-    const order = await orderRepository.findById(id);
+    const order = await getOrderRepository().findById(id);
     
     if (!order) {
       throw new Error('Order not found');
@@ -246,7 +251,7 @@ export async function createOrder(order: Order): Promise<Order> {
       notes: order.notes
     };
 
-    const createdOrder = await orderRepository.create(orderData);
+    const createdOrder = await getOrderRepository().create(orderData);
     return mapRepositoryOrderToApiOrder(createdOrder);
   } catch (error) {
     console.error('Error creating order:', error);
@@ -259,7 +264,7 @@ export async function updateOrderStatus(
   status: Order["status"]
 ): Promise<Order> {
   try {
-    const order = await orderRepository.updateStatus(id, status);
+    const order = await getOrderRepository().updateStatus(id, status);
     
     if (!order) {
       throw new Error('Order not found');
@@ -274,7 +279,7 @@ export async function updateOrderStatus(
 
 export async function deleteOrder(id: string): Promise<{ message: string }> {
   try {
-    await orderRepository.delete(id);
+    await getOrderRepository().delete(id);
     return { message: 'Order deleted successfully' };
   } catch (error) {
     console.error('Error deleting order:', error);
@@ -285,7 +290,7 @@ export async function deleteOrder(id: string): Promise<{ message: string }> {
 // ✅ Order Items
 export async function getOrderItems(orderId: string): Promise<OrderItem[]> {
   try {
-    const orderWithItems = await orderRepository.getOrderWithItems(orderId);
+    const orderWithItems = await getOrderRepository().getOrderWithItems(orderId);
     
     if (!orderWithItems) {
       throw new Error('Order not found');
@@ -309,7 +314,7 @@ export async function addOrderItem(
   item: { product_id: string; quantity: number; price: number }
 ): Promise<OrderItem> {
   try {
-    const orderWithItems = await orderRepository.getOrderWithItems(orderId);
+    const orderWithItems = await getOrderRepository().getOrderWithItems(orderId);
     
     if (!orderWithItems) {
       throw new Error('Order not found');
@@ -332,7 +337,7 @@ export async function addOrderItem(
       }
     ];
     
-    await orderRepository.update(orderId, { items: updatedItems } as any);
+    await getOrderRepository().update(orderId, { items: updatedItems } as any);
 
     return newItem;
   } catch (error) {
@@ -346,7 +351,7 @@ export async function deleteOrderItem(
   itemId: string
 ): Promise<{ message: string }> {
   try {
-    const orderWithItems = await orderRepository.getOrderWithItems(orderId);
+    const orderWithItems = await getOrderRepository().getOrderWithItems(orderId);
     
     if (!orderWithItems) {
       throw new Error('Order not found');
@@ -356,7 +361,7 @@ export async function deleteOrderItem(
       (item: any) => item.gem_id !== itemId
     );
 
-    await orderRepository.update(orderId, { items: updatedItems } as any);
+    await getOrderRepository().update(orderId, { items: updatedItems } as any);
 
     return { message: 'Order item deleted successfully' };
   } catch (error) {

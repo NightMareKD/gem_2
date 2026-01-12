@@ -1,4 +1,4 @@
-import { supabase, supabaseAdmin } from '../supabase'
+import { getSupabaseClient } from '../supabase'
 import { getRepositoryFactory } from '../repositories'
 
 export interface SignUpData {
@@ -35,7 +35,7 @@ export interface TwoFactorData {
 export class AuthService {
   // Get fresh repository instance per operation using the static supabase client
   private getRepositories() {
-    return getRepositoryFactory(supabase)
+    return getRepositoryFactory(getSupabaseClient())
   }
 
   /**
@@ -43,6 +43,7 @@ export class AuthService {
    */
   async signUp(data: SignUpData): Promise<AuthResponse> {
     try {
+      const supabase = getSupabaseClient()
       const { data: authData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -84,6 +85,7 @@ export class AuthService {
    */
   async signIn(data: SignInData): Promise<AuthResponse> {
     try {
+      const supabase = getSupabaseClient()
       const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password
@@ -123,6 +125,7 @@ export class AuthService {
    */
   async signOut(): Promise<{ error?: string }> {
     try {
+      const supabase = getSupabaseClient()
       const { error } = await supabase.auth.signOut()
       if (error) {
         return { error: error.message }
@@ -138,6 +141,7 @@ export class AuthService {
    */
   async getCurrentSession() {
     try {
+      const supabase = getSupabaseClient()
       const { data: { session }, error } = await supabase.auth.getSession()
       if (error) {
         throw error
@@ -153,6 +157,7 @@ export class AuthService {
    */
   async getCurrentUser() {
     try {
+      const supabase = getSupabaseClient()
       const { data: { user }, error } = await supabase.auth.getUser()
       if (error) {
         throw error
@@ -168,6 +173,7 @@ export class AuthService {
    */
   async resetPassword(data: PasswordResetData): Promise<{ error?: string }> {
     try {
+      const supabase = getSupabaseClient()
       const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
         redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/reset-password`
       })
@@ -187,6 +193,7 @@ export class AuthService {
    */
   async updatePassword(data: UpdatePasswordData): Promise<{ error?: string }> {
     try {
+      const supabase = getSupabaseClient()
       const { error } = await supabase.auth.updateUser({
         password: data.password
       })
@@ -206,6 +213,7 @@ export class AuthService {
    */
   async verifyEmail(token: string): Promise<{ error?: string }> {
     try {
+      const supabase = getSupabaseClient()
       const { error } = await supabase.auth.verifyOtp({
         token_hash: token,
         type: 'email'
@@ -315,6 +323,7 @@ export class AuthService {
    */
   async refreshSession(): Promise<AuthResponse> {
     try {
+      const supabase = getSupabaseClient()
       const { data, error } = await supabase.auth.refreshSession()
 
       if (error) {

@@ -2,14 +2,15 @@
 // This file demonstrates how to use the repositories in your application
 
 import { getRepositoryFactory } from './index'
-import { supabase } from '../supabase'
+import { getSupabaseClient } from '../supabase'
 
-// Initialize the repository factory
-const repositories = getRepositoryFactory(supabase)
+function getRepositories() {
+  return getRepositoryFactory(getSupabaseClient())
+}
 
 // Example: User Management
 async function exampleUserOperations() {
-  const userRepo = repositories.getUserRepository()
+  const userRepo = getRepositories().getUserRepository()
 
   // Create a new user
   const newUser = await userRepo.create({
@@ -37,7 +38,7 @@ async function exampleUserOperations() {
 
 // Example: Gem Management
 async function exampleGemOperations() {
-  const gemRepo = repositories.getGemRepository()
+  const gemRepo = getRepositories().getGemRepository()
 
   // Create a new gem
   const newGem = await gemRepo.create({
@@ -69,6 +70,7 @@ async function exampleGemOperations() {
 
 // Example: Order Management
 async function exampleOrderOperations() {
+  const repositories = getRepositories()
   const orderRepo = repositories.getOrderRepository()
   const userRepo = repositories.getUserRepository()
   const gemRepo = repositories.getGemRepository()
@@ -108,6 +110,7 @@ async function exampleOrderOperations() {
 
 // Example: Audit Logging
 async function exampleAuditLogging() {
+  const repositories = getRepositories()
   const auditRepo = repositories.getAuditLogRepository()
   const userRepo = repositories.getUserRepository()
 
@@ -138,6 +141,7 @@ async function exampleAuditLogging() {
 
 // Example: Repository Statistics
 async function exampleStatistics() {
+  const repositories = getRepositories()
   const orderRepo = repositories.getOrderRepository()
   const gemRepo = repositories.getGemRepository()
 
