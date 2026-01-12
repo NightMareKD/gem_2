@@ -1,26 +1,37 @@
-import { NextResponse } from "next/server";
-import { authService } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    console.log('Refresh - Attempting to refresh session');
-    
-    // Refresh the session using Supabase
-    const authResponse = await authService.refreshSession();
+    const responseCookies: Array<{ name: string; value: string; options: CookieOptions }> = [];
 
-    if (authResponse.error || !authResponse.session) {
-      console.log('Refresh - Failed to refresh session:', authResponse.error);
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return request.cookies.get(name)?.value;
+          },
+          set(name: string, value: string, options: CookieOptions) {
+            responseCookies.push({ name, value, options });
+          },
+          remove(name: string, options: CookieOptions) {
+            responseCookies.push({ name, value: '', options });
+          },
+        },
+      }
+    );
+
+    const { data, error } = await supabase.auth.refreshSession();
+    if (error || !data.session) {
       return NextResponse.json(
-        { error: authResponse.error || "Failed to refresh session" },
+        { error: error?.message || 'Failed to refresh session' },
         { status: 401 }
       );
     }
 
-    const { session } = authResponse;
-
-    console.log('Refresh - Session refreshed successfully');
-
-    // Return success response
+    const { session } = data;
     const response = NextResponse.json({
       success: true,
       session: {
@@ -30,21 +41,9 @@ export async function POST() {
       },
     });
 
-    // Update session cookies
-    response.cookies.set("sb-access-token", session.access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: session.expires_in || 3600,
-      path: '/',
-    });
-
-    response.cookies.set("sb-refresh-token", session.refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60, // 30 days
-      path: '/',
+    // Apply any cookie updates Supabase SSR client requests
+    responseCookies.forEach(({ name, value, options }) => {
+      response.cookies.set(name, value, options);
     });
 
     return response;

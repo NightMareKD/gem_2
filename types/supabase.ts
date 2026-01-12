@@ -69,48 +69,69 @@ export interface Database {
         Row: {
           id: string
           name: string
-          description: string
-          category: 'Diamond' | 'Ruby' | 'Sapphire' | 'Emerald' | 'Pearl' | 'Other'
           price: number
-          images: string[]
-          specifications: Json
+          category: string | null
+          description: string | null
+          identification: string | null
+          weight_carats: string | null
+          color: string | null
+          clarity: string | null
+          shape_and_cut: string | null
+          dimensions: string | null
+          treatments: string | null
+          origin: string | null
+          carat_weight: number | null
+          cut: string | null
+          certification: string | null
+          images: string[] | null
           is_active: boolean
-          seller_id: string | null
-          approved_by: string | null
-          approval_status: 'Pending' | 'Approved' | 'Rejected'
-          stock: number
+          stock_quantity: number
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           name: string
-          description: string
-          category: 'Diamond' | 'Ruby' | 'Sapphire' | 'Emerald' | 'Pearl' | 'Other'
           price: number
-          images: string[]
-          specifications?: Json
+          category?: string | null
+          description?: string | null
+          identification?: string | null
+          weight_carats?: string | null
+          color?: string | null
+          clarity?: string | null
+          shape_and_cut?: string | null
+          dimensions?: string | null
+          treatments?: string | null
+          origin?: string | null
+          carat_weight?: number | null
+          cut?: string | null
+          certification?: string | null
+          images?: string[] | null
           is_active?: boolean
-          seller_id?: string | null
-          approved_by?: string | null
-          approval_status?: 'Pending' | 'Approved' | 'Rejected'
-          stock?: number
+          stock_quantity?: number
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           name?: string
-          description?: string
-          category?: 'Diamond' | 'Ruby' | 'Sapphire' | 'Emerald' | 'Pearl' | 'Other'
           price?: number
-          images?: string[]
-          specifications?: Json
+          category?: string | null
+          description?: string | null
+          identification?: string | null
+          weight_carats?: string | null
+          color?: string | null
+          clarity?: string | null
+          shape_and_cut?: string | null
+          dimensions?: string | null
+          treatments?: string | null
+          origin?: string | null
+          carat_weight?: number | null
+          cut?: string | null
+          certification?: string | null
+          images?: string[] | null
           is_active?: boolean
-          seller_id?: string | null
-          approved_by?: string | null
-          approval_status?: 'Pending' | 'Approved' | 'Rejected'
-          stock?: number
+          stock_quantity?: number
           updated_at?: string
         }
       }

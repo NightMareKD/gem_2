@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthenticatedUser, isAdminRole, isHighAdminRole } from "@/lib/auth/middleware-helper";
+import { enforceCsrf, getAuthenticatedUser, isAdminRole, isHighAdminRole } from "@/lib/auth/middleware-helper";
 import { getRepositoryFactory } from "@/lib/repositories";
 import { rateLimiters, getRateLimitIdentifier } from "@/lib/rate-limit";
 import { validateInput, ValidationRule } from "@/lib/validation";
@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get("search") || undefined;
-    const category = searchParams.get("category") || undefined;
     const minPrice = searchParams.get("minPrice")
       ? parseFloat(searchParams.get("minPrice")!)
       : undefined;
@@ -37,9 +36,8 @@ export async function GET(request: NextRequest) {
     let gems;
     if (search) {
       gems = await gemRepository.searchGems(search, limit);
-    } else if (category || minPrice || maxPrice || isActive !== undefined) {
+    } else if (minPrice || maxPrice || isActive !== undefined) {
       gems = await gemRepository.findGemsWithFilters({
-        category,
         minPrice,
         maxPrice,
         isActive
@@ -79,6 +77,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const csrf = enforceCsrf(request);
+    if (!csrf.ok) {
+      return NextResponse.json({ error: csrf.error }, { status: 403 });
+    }
+
     const gemRepository = getRepositoryFactory(supabase).getGemRepository();
     const auditLogRepository = getRepositoryFactory(supabase).getAuditLogRepository();
 
@@ -88,9 +91,14 @@ export async function POST(request: NextRequest) {
     const validationRules: ValidationRule[] = [
       { field: 'name', type: 'string', required: true },
       { field: 'price', type: 'number', required: true, min: 0, max: 10000000 },
-      { field: 'category', type: 'string', required: true },
-      { field: 'description', type: 'string', required: false },
-      { field: 'carat_weight', type: 'number', required: false, min: 0, max: 1000 },
+      { field: 'identification', type: 'string', required: false },
+      { field: 'weight_carats', type: 'string', required: false },
+      { field: 'color', type: 'string', required: false },
+      { field: 'clarity', type: 'string', required: false },
+      { field: 'shape_and_cut', type: 'string', required: false },
+      { field: 'dimensions', type: 'string', required: false },
+      { field: 'treatments', type: 'string', required: false },
+      { field: 'origin', type: 'string', required: false },
       { field: 'stock_quantity', type: 'number', required: false, min: 0, max: 100000 },
     ];
 
@@ -105,15 +113,15 @@ export async function POST(request: NextRequest) {
     // Create gem data
     const gemData = {
       name: body.name,
-      description: body.description,
       price: body.price,
-      category: body.category,
-      carat_weight: body.carat_weight,
+      identification: body.identification,
+      weight_carats: body.weight_carats,
       color: body.color,
       clarity: body.clarity,
-      cut: body.cut,
+      shape_and_cut: body.shape_and_cut,
+      dimensions: body.dimensions,
+      treatments: body.treatments,
       origin: body.origin,
-      certification: body.certification,
       images: body.images || [],
       stock_quantity: body.stock_quantity || 0,
       is_active: body.is_active !== undefined ? body.is_active : true,
@@ -130,8 +138,8 @@ export async function POST(request: NextRequest) {
       entity_id: newGem.id,
       changes: {
         gemName: newGem.name,
-        category: newGem.category,
         price: newGem.price,
+        origin: newGem.origin,
       },
     });
 
@@ -154,6 +162,11 @@ export async function PUT(request: NextRequest) {
         { error: error || "Forbidden - Admin access required" },
         { status: error ? 401 : 403 }
       );
+    }
+
+    const csrf = enforceCsrf(request);
+    if (!csrf.ok) {
+      return NextResponse.json({ error: csrf.error }, { status: 403 });
     }
 
     const gemRepository = getRepositoryFactory(supabase).getGemRepository();
@@ -199,15 +212,15 @@ export async function PUT(request: NextRequest) {
     const updateData: any = {};
     const allowedFields = [
       "name",
-      "description",
       "price",
-      "category",
-      "carat_weight",
+      "identification",
+      "weight_carats",
       "color",
       "clarity",
-      "cut",
+      "shape_and_cut",
+      "dimensions",
+      "treatments",
       "origin",
-      "certification",
       "images",
       "stock_quantity",
       "is_active",
@@ -262,6 +275,11 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    const csrf = enforceCsrf(request);
+    if (!csrf.ok) {
+      return NextResponse.json({ error: csrf.error }, { status: 403 });
+    }
+
     const gemRepository = getRepositoryFactory(supabase).getGemRepository();
     const auditLogRepository = getRepositoryFactory(supabase).getAuditLogRepository();
 
@@ -299,7 +317,6 @@ export async function DELETE(request: NextRequest) {
       entity_id: gemId,
       changes: {
         gemName: existingGem.name,
-        category: existingGem.category,
       },
     });
 

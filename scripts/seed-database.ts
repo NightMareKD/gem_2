@@ -91,71 +91,67 @@ async function seedGems() {
   const testGems = [
     {
       name: 'Blue Sapphire',
-      description: 'Premium quality natural blue sapphire certified by the Royal Gems Institute.',
       price: 1250.00,
-      category: 'Sapphire' as const,
+      category: 'Other' as const,
       images: ['https://example.com/sapphire.jpg'],
-      stock: 15,
+      stock_quantity: 15,
       is_active: true,
-      specifications: {
-        carat_weight: 2.5,
-        color: 'Blue',
-        clarity: 'VS',
-        cut: 'Oval',
-        origin: 'Sri Lanka',
-        certification: 'RGI-2024-001'
-      }
+      identification: 'Natural Blue Sapphire',
+      weight_carats: '2.5',
+      color: 'Blue',
+      clarity: 'VS',
+      shape_and_cut: 'Oval',
+      dimensions: '8.0 x 6.0 x 4.2 mm',
+      treatments: 'Heat',
+      origin: 'Sri Lanka'
     },
     {
       name: 'Ruby Gemstone',
-      description: 'Vivid red ruby with excellent clarity. Certified and graded by Royal Gems Institute.',
       price: 980.00,
-      category: 'Ruby' as const,
+      category: 'Other' as const,
       images: ['https://example.com/ruby.jpg'],
-      stock: 20,
+      stock_quantity: 20,
       is_active: true,
-      specifications: {
-        carat_weight: 1.8,
-        color: 'Red',
-        clarity: 'VVS',
-        cut: 'Round',
-        origin: 'Myanmar',
-        certification: 'RGI-2024-002'
-      }
+      identification: 'Natural Ruby',
+      weight_carats: '1.8',
+      color: 'Red',
+      clarity: 'VVS',
+      shape_and_cut: 'Round',
+      dimensions: '6.5 x 6.5 x 3.8 mm',
+      treatments: 'None',
+      origin: 'Myanmar'
     },
     {
       name: 'Emerald Gemstone',
-      description: 'Natural green emerald gemstone – high-quality cut and finish.',
       price: 750.00,
-      category: 'Emerald' as const,
+      category: 'Other' as const,
       images: ['https://example.com/emerald.jpg'],
-      stock: 12,
+      stock_quantity: 12,
       is_active: true,
-      specifications: {
-        carat_weight: 3.0,
-        color: 'Green',
-        clarity: 'VS',
-        cut: 'Emerald',
-        origin: 'Colombia',
-        certification: 'RGI-2024-003'
-      }
+      identification: 'Natural Emerald',
+      weight_carats: '3.0',
+      color: 'Green',
+      clarity: 'VS',
+      shape_and_cut: 'Emerald',
+      dimensions: '9.0 x 7.0 x 4.5 mm',
+      treatments: 'Oil',
+      origin: 'Colombia'
     },
     {
       name: 'Pink Diamond',
-      description: 'Rare fancy pink diamond with exceptional brilliance.',
       price: 5000.00,
-      category: 'Diamond' as const,
+      category: 'Other' as const,
       images: ['https://example.com/pink-diamond.jpg'],
-      stock: 3,
+      stock_quantity: 3,
       is_active: true,
-      specifications: {
-        carat_weight: 1.0,
-        color: 'Pink',
-        clarity: 'IF',
-        cut: 'Cushion',
-        origin: 'Australia',
-        certification: 'RGI-2024-004'
-      }
+      identification: 'Natural Pink Diamond',
+      weight_carats: '1.0',
+      color: 'Pink',
+      clarity: 'IF',
+      shape_and_cut: 'Cushion',
+      dimensions: '5.2 x 5.0 x 3.1 mm',
+      treatments: 'None',
+      origin: 'Australia'
     }
   ];
 

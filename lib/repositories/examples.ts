@@ -41,25 +41,26 @@ async function exampleGemOperations() {
 
   // Create a new gem
   const newGem = await gemRepo.create({
-    name: 'Diamond Ring',
-    description: 'Beautiful diamond engagement ring',
-    price: 2500.00,
-    category: 'Rings',
-    carat_weight: 1.5,
-    color: 'D',
+    name: 'Ceylon Sapphire',
+    identification: 'Natural sapphire',
+    price: 2500.0,
+    weight_carats: '1.50',
+    color: 'Blue',
     clarity: 'VS1',
-    stock_quantity: 5
+    shape_and_cut: 'Oval / Mixed cut',
+    dimensions: '7.2 x 5.8 x 3.6 mm',
+    treatments: 'None',
+    origin: 'Sri Lanka',
+    images: [],
+    stock_quantity: 5,
+    is_active: true
   })
 
   // Search gems
   const searchResults = await gemRepo.searchGems('diamond', 20)
 
-  // Get gems by category
-  const rings = await gemRepo.findByCategory('Rings', 10)
-
   // Advanced filtering
   const filteredGems = await gemRepo.findGemsWithFilters({
-    category: 'Rings',
     minPrice: 1000,
     maxPrice: 5000,
     color: 'D'
@@ -77,6 +78,8 @@ async function exampleOrderOperations() {
   const gems = await gemRepo.findActiveGems(5)
 
   if (user && gems.length > 0) {
+    const gem = gems[0]
+
     // Create an order with items
     const orderWithItems = await orderRepo.createOrderWithItems(
       {
@@ -85,12 +88,14 @@ async function exampleOrderOperations() {
         billing_address: { street: '123 Main St', city: 'NYC' },
         payment_method: 'credit_card'
       },
-      gems.slice(0, 2).map(gem => ({
-        gem_id: gem.id,
-        quantity: 1,
-        unit_price: gem.price,
-        total_price: gem.price
-      }))
+      [
+        {
+          gem_id: gem.id,
+          quantity: 1,
+          unit_price: gem.price,
+          total_price: gem.price
+        }
+      ]
     )
 
     // Update order status
@@ -144,9 +149,7 @@ async function exampleStatistics() {
   const priceRange = await gemRepo.getPriceRange()
   console.log('Gem Price Range:', priceRange)
 
-  // Get categories
-  const categories = await gemRepo.getCategories()
-  console.log('Gem Categories:', categories)
+    // Categories were removed from gems; use other filters instead.
 }
 
 export {

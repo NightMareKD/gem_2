@@ -1,20 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authService } from '@/lib/auth/service';
+import { createServerClient } from '@supabase/ssr';
 import { getRepositoryFactory } from '@/lib/repositories';
-import { supabase } from '@/lib/supabase';
 import { validatePasswordStrength } from '@/lib/security/auth';
-
-const userRepository = getRepositoryFactory(supabase).getUserRepository();
+import { enforceCsrf, getAdminClient } from '@/lib/auth/middleware-helper';
+import { getRateLimitIdentifier, rateLimiters } from '@/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
-  const authUser = await authService.getCurrentUser();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set() {},
+        remove() {},
+      },
+    }
+  );
+
+  const { data: { user: authUser } } = await supabase.auth.getUser();
   if (!authUser) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Check superadmin role
+  const userRepository = getRepositoryFactory(supabase).getUserRepository();
   const userProfile = await userRepository.findById(authUser.id);
-  if (!userProfile || userProfile.role !== 'SuperAdmin') {
+  if (!userProfile || !['SuperAdmin', 'superadmin'].includes(userProfile.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -44,21 +57,45 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const authUser = await authService.getCurrentUser();
+  // Rate limiting
+  const clientId = getRateLimitIdentifier(request);
+  const rl = await rateLimiters.api(`admin_admins:${clientId}`);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429 }
+    );
+  }
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set() {},
+        remove() {},
+      },
+    }
+  );
+
+  const { data: { user: authUser } } = await supabase.auth.getUser();
   if (!authUser) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Check superadmin role
+  const userRepository = getRepositoryFactory(supabase).getUserRepository();
   const userProfile = await userRepository.findById(authUser.id);
-  if (!userProfile || userProfile.role !== 'SuperAdmin') {
+  if (!userProfile || !['SuperAdmin', 'superadmin'].includes(userProfile.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  // TODO: Add CSRF verification
-  // if (!verifyCSRF(request)) {
-  //   return NextResponse.json({ error: 'CSRF' }, { status: 403 });
-  // }
+  const csrf = enforceCsrf(request);
+  if (!csrf.ok) {
+    return NextResponse.json({ error: csrf.error }, { status: 403 });
+  }
 
   const body = await request.json();
   const { email, firstName, lastName, role, password } = body;
@@ -77,15 +114,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: errors.join(', ') }, { status: 400 });
   }
 
+  const adminSupabase = await getAdminClient(request);
+  const adminUserRepository = getRepositoryFactory(adminSupabase).getUserRepository();
+
   // Check if email already exists
-  const existingUser = await userRepository.findByEmail(email.toLowerCase());
+  const existingUser = await adminUserRepository.findByEmail(email.toLowerCase());
   if (existingUser) {
     return NextResponse.json({ error: 'Email already exists' }, { status: 400 });
   }
 
   try {
     // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    const { data: authData, error: authError } = await adminSupabase.auth.admin.createUser({
       email: email.toLowerCase(),
       password: password,
       email_confirm: true,
@@ -100,7 +140,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create user profile in our database
-    const created = await userRepository.create({
+    const created = await adminUserRepository.create({
       id: authData.user.id,
       email: email.toLowerCase(),
       password_hash: '',

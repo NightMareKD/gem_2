@@ -4,6 +4,7 @@ import { getRepositoryFactory } from '@/lib/repositories';
 import { validatePasswordStrength } from '@/lib/security/auth';
 import { rateLimiters, getRateLimitIdentifier } from '@/lib/rate-limit';
 import { validateInput, ValidationRule } from '@/lib/validation';
+import { enforceCsrf, getAdminClient } from '@/lib/auth/middleware-helper';
 import bcrypt from 'bcryptjs';
 
 export async function GET(request: NextRequest) {
@@ -88,8 +89,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  // TODO: Add CSRF verification
-  // if (!verifyCSRF(request)) return NextResponse.json({ error: 'CSRF' }, { status: 403 });
+  const csrf = enforceCsrf(request);
+  if (!csrf.ok) {
+    return NextResponse.json({ error: csrf.error }, { status: 403 });
+  }
+
+  const adminSupabase = await getAdminClient(request);
+  const adminUserRepository = getRepositoryFactory(adminSupabase).getUserRepository();
 
   const body = await request.json();
   const { email, firstName, lastName, role, password } = body || {};
@@ -127,14 +133,14 @@ export async function POST(request: NextRequest) {
   }
 
   // Check if email already exists
-  const existingUser = await userRepository.findByEmail(email.toLowerCase());
+  const existingUser = await adminUserRepository.findByEmail(email.toLowerCase());
   if (existingUser) {
     return NextResponse.json({ error: 'Email already exists' }, { status: 400 });
   }
 
   try {
     // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    const { data: authData, error: authError } = await adminSupabase.auth.admin.createUser({
       email: email.toLowerCase(),
       password: password,
       email_confirm: true, // Auto-confirm for admin-created accounts
@@ -149,7 +155,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create user profile in our database
-    const created = await userRepository.create({
+    const created = await adminUserRepository.create({
       id: authData.user.id,
       email: email.toLowerCase(),
       password_hash: '', // Handled by Supabase Auth
@@ -215,8 +221,10 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  // TODO: Add CSRF verification
-  // if (!verifyCSRF(request)) return NextResponse.json({ error: 'CSRF' }, { status: 403 });
+  const csrf = enforceCsrf(request);
+  if (!csrf.ok) {
+    return NextResponse.json({ error: csrf.error }, { status: 403 });
+  }
 
   const { id, role, isActive, resetPassword } = await request.json();
 
@@ -302,8 +310,10 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  // TODO: Add CSRF verification
-  // if (!verifyCSRF(request)) return NextResponse.json({ error: 'CSRF' }, { status: 403 });
+  const csrf = enforceCsrf(request);
+  if (!csrf.ok) {
+    return NextResponse.json({ error: csrf.error }, { status: 403 });
+  }
 
   const url = new URL(request.url);
   const id = url.searchParams.get('id');

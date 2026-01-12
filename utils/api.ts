@@ -64,18 +64,19 @@ export async function createProduct(
   try {
     const gemData = {
       name: product.name,
-      description: product.description,
       price: product.price,
-      category: product.category,
+      category: product.category || 'Other',
       images: product.images,
-      stock_quantity: product.stock,
+      stock_quantity: product.stock_quantity ?? product.stock ?? 0,
       is_active: product.is_active ?? true,
-      carat_weight: product.specifications?.carat_weight,
+      identification: product.specifications?.identification ?? product.description,
+      weight_carats: product.specifications?.weight_carats,
       color: product.specifications?.color,
       clarity: product.specifications?.clarity,
-      cut: product.specifications?.cut,
+      shape_and_cut: product.specifications?.shape_and_cut,
+      dimensions: product.specifications?.dimensions,
+      treatments: product.specifications?.treatments,
       origin: product.specifications?.origin,
-      certification: product.specifications?.certification
     };
 
     const gem = await gemRepository.create(gemData);
@@ -83,22 +84,24 @@ export async function createProduct(
     return {
       id: gem.id!,
       name: gem.name,
-      description: gem.description || '',
+      description: gem.identification || '',
       price: gem.price,
       image_url: gem.images?.[0] || '',
       images: gem.images || [],
-      category: gem.category || 'Gemstone',
+      category: (gem as any).category || 'Gemstone',
       stock_quantity: gem.stock_quantity || 0,
       stock: gem.stock_quantity || 0,
       active: gem.is_active ?? true,
       is_active: gem.is_active ?? true,
       specifications: {
-        carat_weight: gem.carat_weight || 0,
+        identification: gem.identification || '',
+        weight_carats: gem.weight_carats || '',
         color: gem.color || '',
         clarity: gem.clarity || '',
-        cut: gem.cut || '',
-        origin: gem.origin || '',
-        certification: gem.certification || ''
+        shape_and_cut: gem.shape_and_cut || '',
+        dimensions: gem.dimensions || '',
+        treatments: gem.treatments || '',
+        origin: gem.origin || ''
       },
       created_at: gem.created_at || new Date().toISOString(),
       updated_at: gem.updated_at || new Date().toISOString()
@@ -117,20 +120,22 @@ export async function updateProduct(
     const updateData: any = {};
     
     if (product.name) updateData.name = product.name;
-    if (product.description) updateData.description = product.description;
     if (product.price !== undefined) updateData.price = product.price;
     if (product.category) updateData.category = product.category;
     if (product.images) updateData.images = product.images;
+    if (product.stock_quantity !== undefined) updateData.stock_quantity = product.stock_quantity;
     if (product.stock !== undefined) updateData.stock_quantity = product.stock;
     if (product.is_active !== undefined) updateData.is_active = product.is_active;
     
     if (product.specifications) {
-      if (product.specifications.carat_weight) updateData.carat_weight = product.specifications.carat_weight;
-      if (product.specifications.color) updateData.color = product.specifications.color;
-      if (product.specifications.clarity) updateData.clarity = product.specifications.clarity;
-      if (product.specifications.cut) updateData.cut = product.specifications.cut;
-      if (product.specifications.origin) updateData.origin = product.specifications.origin;
-      if (product.specifications.certification) updateData.certification = product.specifications.certification;
+      if (product.specifications.identification !== undefined) updateData.identification = product.specifications.identification;
+      if (product.specifications.weight_carats !== undefined) updateData.weight_carats = product.specifications.weight_carats;
+      if (product.specifications.color !== undefined) updateData.color = product.specifications.color;
+      if (product.specifications.clarity !== undefined) updateData.clarity = product.specifications.clarity;
+      if (product.specifications.shape_and_cut !== undefined) updateData.shape_and_cut = product.specifications.shape_and_cut;
+      if (product.specifications.dimensions !== undefined) updateData.dimensions = product.specifications.dimensions;
+      if (product.specifications.treatments !== undefined) updateData.treatments = product.specifications.treatments;
+      if (product.specifications.origin !== undefined) updateData.origin = product.specifications.origin;
     }
 
     const gem = await gemRepository.update(id, updateData);
@@ -142,22 +147,24 @@ export async function updateProduct(
     return {
       id: gem.id!,
       name: gem.name,
-      description: gem.description || '',
+      description: gem.identification || '',
       price: gem.price,
       image_url: gem.images?.[0] || '',
       images: gem.images || [],
-      category: gem.category || 'Gemstone',
+      category: (gem as any).category || 'Gemstone',
       stock_quantity: gem.stock_quantity || 0,
       stock: gem.stock_quantity || 0,
       active: gem.is_active ?? true,
       is_active: gem.is_active ?? true,
       specifications: {
-        carat_weight: gem.carat_weight || 0,
+        identification: gem.identification || '',
+        weight_carats: gem.weight_carats || '',
         color: gem.color || '',
         clarity: gem.clarity || '',
-        cut: gem.cut || '',
-        origin: gem.origin || '',
-        certification: gem.certification || ''
+        shape_and_cut: gem.shape_and_cut || '',
+        dimensions: gem.dimensions || '',
+        treatments: gem.treatments || '',
+        origin: gem.origin || ''
       },
       created_at: gem.created_at || new Date().toISOString(),
       updated_at: gem.updated_at || new Date().toISOString()

@@ -5,15 +5,15 @@ import { Database } from '@/types/supabase'
 export interface Gem {
   id: string
   name: string
-  description?: string
+  identification?: string
   price: number
-  category: string
-  carat_weight?: number
+  weight_carats?: string
   color?: string
   clarity?: string
-  cut?: string
+  shape_and_cut?: string
+  dimensions?: string
+  treatments?: string
   origin?: string
-  certification?: string
   images?: string[]
   stock_quantity: number
   is_active: boolean
@@ -22,18 +22,16 @@ export interface Gem {
 }
 
 export interface GemFilters {
-  category?: string
   minPrice?: number
   maxPrice?: number
   color?: string
   clarity?: string
-  cut?: string
+  shape_and_cut?: string
   origin?: string
   isActive?: boolean
 }
 
 export interface GemRepository extends BaseRepository<Gem> {
-  findByCategory(category: string, limit?: number): Promise<Gem[]>
   searchGems(query: string, limit?: number): Promise<Gem[]>
   findActiveGems(limit?: number, offset?: number): Promise<Gem[]>
   findGemsWithFilters(filters: GemFilters, limit?: number, offset?: number): Promise<Gem[]>
@@ -43,7 +41,6 @@ export interface GemRepository extends BaseRepository<Gem> {
   activateGem(id: string): Promise<Gem | null>
   deactivateGem(id: string): Promise<Gem | null>
   getLowStockGems(threshold: number): Promise<Gem[]>
-  getCategories(): Promise<string[]>
   getPriceRange(): Promise<{ min: number; max: number }>
   bulkUpdateStock(updates: Array<{ id: string; quantity: number }>): Promise<Gem[]>
   getGemsByIds(ids: string[]): Promise<Gem[]>
@@ -54,28 +51,12 @@ export class GemRepositoryImpl extends BaseRepositoryImpl<Gem> implements GemRep
     super(supabase, 'gems')
   }
 
-  async findByCategory(category: string, limit: number = 50): Promise<Gem[]> {
-    const { data, error } = await this.supabase
-      .from('gems')
-      .select('*')
-      .eq('category', category)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-      .limit(limit)
-
-    if (error) {
-      throw error
-    }
-
-    return (data || []) as Gem[]
-  }
-
   async searchGems(query: string, limit: number = 50): Promise<Gem[]> {
     const { data, error } = await this.supabase
       .from('gems')
       .select('*')
       .eq('is_active', true)
-      .or(`name.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`)
+      .or(`name.ilike.%${query}%,identification.ilike.%${query}%,origin.ilike.%${query}%`)
       .order('created_at', { ascending: false })
       .limit(limit)
 
@@ -108,9 +89,6 @@ export class GemRepositoryImpl extends BaseRepositoryImpl<Gem> implements GemRep
       .order('created_at', { ascending: false })
 
     // Apply filters
-    if (filters.category) {
-      query = query.eq('category', filters.category)
-    }
     if (filters.minPrice !== undefined) {
       query = query.gte('price', filters.minPrice)
     }
@@ -123,8 +101,8 @@ export class GemRepositoryImpl extends BaseRepositoryImpl<Gem> implements GemRep
     if (filters.clarity) {
       query = query.eq('clarity', filters.clarity)
     }
-    if (filters.cut) {
-      query = query.eq('cut', filters.cut)
+    if (filters.shape_and_cut) {
+      query = query.eq('shape_and_cut', filters.shape_and_cut)
     }
     if (filters.origin) {
       query = query.eq('origin', filters.origin)
@@ -238,21 +216,6 @@ export class GemRepositoryImpl extends BaseRepositoryImpl<Gem> implements GemRep
     }
 
     return (data || []) as Gem[]
-  }
-
-  async getCategories(): Promise<string[]> {
-    const { data, error } = await this.supabase
-      .from('gems')
-      .select('category')
-      .not('category', 'is', null)
-
-    if (error) {
-      throw error
-    }
-
-    // Extract unique categories
-    const categories = [...new Set((data as any[] || []).map((item: any) => item.category).filter(Boolean))]
-    return categories as string[]
   }
 
   async getPriceRange(): Promise<{ min: number; max: number }> {

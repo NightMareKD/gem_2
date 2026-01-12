@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { enforceCsrf } from '@/lib/auth/middleware-helper';
 
 export async function POST(request: NextRequest) {
   try {
+    const csrf = enforceCsrf(request);
+    if (!csrf.ok) {
+      return NextResponse.json({ error: csrf.error }, { status: 403 });
+    }
+
     const response = NextResponse.json({ success: true });
 
     // Create Supabase client with cookie handling
@@ -55,6 +61,15 @@ export async function POST(request: NextRequest) {
     // Clear lastActivity cookie
     response.cookies.set('lastActivity', '', {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 0,
+      path: '/',
+    });
+
+    // Clear CSRF cookie
+    response.cookies.set('csrfToken', '', {
+      httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 0,

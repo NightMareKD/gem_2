@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { getRepositoryFactory } from "@/lib/repositories";
+import { enforceCsrf } from '@/lib/auth/middleware-helper';
 
 export async function GET(request: NextRequest) {
   try {
@@ -88,6 +89,11 @@ export async function PUT(request: NextRequest) {
 
     if (userError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const csrf = enforceCsrf(request);
+    if (!csrf.ok) {
+      return NextResponse.json({ error: csrf.error }, { status: 403 });
     }
 
     const { firstName, lastName } = await request.json();

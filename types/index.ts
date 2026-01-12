@@ -13,12 +13,14 @@ export interface Product {
   active: boolean;
   is_active?: boolean; // Alias for active
   specifications?: {
-    carat_weight?: number;
+    identification?: string;
+    weight_carats?: string;
     color?: string;
     clarity?: string;
-    cut?: string;
+    shape_and_cut?: string;
+    dimensions?: string;
+    treatments?: string;
     origin?: string;
-    certification?: string;
   };
   created_at: string;
   updated_at?: string;

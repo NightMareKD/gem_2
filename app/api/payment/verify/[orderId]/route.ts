@@ -5,9 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getRepositoryFactory } from '@/lib/repositories';
-import { supabase } from '@/lib/supabase';
-
-const paymentRepository = getRepositoryFactory(supabase).getPaymentRepository();
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(
   request: NextRequest,
@@ -22,6 +20,26 @@ export async function GET(
         { status: 400 }
       );
     }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json(
+        { error: 'Server is not configured (missing Supabase env vars).' },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false,
+      },
+    });
+
+    const paymentRepository = getRepositoryFactory(supabase).getPaymentRepository();
 
     // Find payment by order ID
     const payment = await paymentRepository.findByOrderId(orderId);

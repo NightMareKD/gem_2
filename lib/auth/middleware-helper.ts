@@ -52,3 +52,31 @@ export function isAdminRole(role: string): boolean {
 export function isHighAdminRole(role: string): boolean {
   return ['SuperAdmin', 'Admin', 'superadmin', 'admin'].includes(role);
 }
+
+export function isMutatingMethod(method: string): boolean {
+  const m = method.toUpperCase();
+  return m === 'POST' || m === 'PUT' || m === 'PATCH' || m === 'DELETE';
+}
+
+/**
+ * Enforce CSRF protection for state-changing API requests.
+ * Uses a double-submit cookie approach: `csrfToken` cookie must match `x-csrf-token` header.
+ */
+export function enforceCsrf(request: NextRequest): { ok: true } | { ok: false; error: string } {
+  if (!isMutatingMethod(request.method)) {
+    return { ok: true };
+  }
+
+  const header = request.headers.get('x-csrf-token') || request.headers.get('x-csrf') || '';
+  const cookie = request.cookies.get('csrfToken')?.value || '';
+
+  if (!header || !cookie) {
+    return { ok: false, error: 'CSRF token missing' };
+  }
+
+  if (header !== cookie) {
+    return { ok: false, error: 'CSRF token invalid' };
+  }
+
+  return { ok: true };
+}

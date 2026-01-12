@@ -1,16 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
-import { authService } from "@/lib/auth/service";
+import { createServerClient } from '@supabase/ssr';
 import { getRepositoryFactory } from "@/lib/repositories";
 import { generate2FASecret, generateQRCode } from "@/lib/security/auth";
+import { enforceCsrf } from '@/lib/auth/middleware-helper';
 import speakeasy from "speakeasy";
-import bcrypt from "bcryptjs";
-
-const userRepository = getRepositoryFactory(supabase).getUserRepository();
 
 export async function POST(request: NextRequest) {
   try {
-    const authUser = await authService.getCurrentUser();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return request.cookies.get(name)?.value;
+          },
+          set() {},
+          remove() {},
+        },
+      }
+    );
+
+    const { data: { user: authUser } } = await supabase.auth.getUser();
 
     if (!authUser) {
       return NextResponse.json(
@@ -18,6 +29,13 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const csrf = enforceCsrf(request);
+    if (!csrf.ok) {
+      return NextResponse.json({ error: csrf.error }, { status: 403 });
+    }
+
+    const userRepository = getRepositoryFactory(supabase).getUserRepository();
 
     const dbUser = await userRepository.findById(authUser.id);
     if (!dbUser) {
@@ -66,13 +84,32 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const authUser = await authService.getCurrentUser();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return request.cookies.get(name)?.value;
+          },
+          set() {},
+          remove() {},
+        },
+      }
+    );
+
+    const { data: { user: authUser } } = await supabase.auth.getUser();
 
     if (!authUser) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
       );
+    }
+
+    const csrf = enforceCsrf(request);
+    if (!csrf.ok) {
+      return NextResponse.json({ error: csrf.error }, { status: 403 });
     }
 
     const { token } = await request.json();
@@ -84,6 +121,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const userRepository = getRepositoryFactory(supabase).getUserRepository();
     const dbUser = await userRepository.findById(authUser.id);
     if (!dbUser || !dbUser.two_factor_secret) {
       return NextResponse.json(
@@ -150,13 +188,32 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const authUser = await authService.getCurrentUser();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return request.cookies.get(name)?.value;
+          },
+          set() {},
+          remove() {},
+        },
+      }
+    );
+
+    const { data: { user: authUser } } = await supabase.auth.getUser();
 
     if (!authUser) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
       );
+    }
+
+    const csrf = enforceCsrf(request);
+    if (!csrf.ok) {
+      return NextResponse.json({ error: csrf.error }, { status: 403 });
     }
 
     const { password } = await request.json();
@@ -168,6 +225,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    const userRepository = getRepositoryFactory(supabase).getUserRepository();
     const dbUser = await userRepository.findById(authUser.id);
     if (!dbUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -175,12 +233,12 @@ export async function DELETE(request: NextRequest) {
 
     // For Supabase Auth, we need to verify the password by attempting to sign in
     // This is a simplified approach - in production, you might want to use Supabase's reauthentication
-    const signInResult = await authService.signIn({
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email: authUser.email!,
-      password: password
+      password,
     });
 
-    if (signInResult.error) {
+    if (signInError) {
       // Log failed attempt
       // await auditLogRepository.create({
       //   user_id: authUser.id,

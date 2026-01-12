@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
 
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
+  const id = searchParams.get('id') || undefined;
     const search = searchParams.get("search") || undefined;
-    const category = searchParams.get("category") || undefined;
     const minPrice = searchParams.get("minPrice")
       ? parseFloat(searchParams.get("minPrice")!)
       : undefined;
@@ -35,14 +35,49 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "100");
     const offset = parseInt(searchParams.get("offset") || "0");
 
+    // If requesting a single product, return it (or 404)
+    if (id) {
+      const gem = await gemRepository.findById(id);
+      if (!gem || !gem.is_active) {
+        return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      }
+
+      const product = {
+        id: gem.id!,
+        name: gem.name,
+        description: gem.identification || '',
+        price: gem.price,
+        image_url: gem.images?.[0] || '',
+        images: gem.images || [],
+        category: 'Gemstone',
+        stock_quantity: gem.stock_quantity || 0,
+        stock: gem.stock_quantity || 0,
+        active: gem.is_active ?? true,
+        is_active: gem.is_active ?? true,
+        specifications: {
+          identification: gem.identification || '',
+          weight_carats: gem.weight_carats || '',
+          color: gem.color || '',
+          clarity: gem.clarity || '',
+          shape_and_cut: gem.shape_and_cut || '',
+          dimensions: gem.dimensions || '',
+          treatments: gem.treatments || '',
+          origin: gem.origin || ''
+        },
+        created_at: gem.created_at || new Date().toISOString(),
+        updated_at: gem.updated_at || new Date().toISOString()
+      };
+
+      return NextResponse.json({ product }, { status: 200 });
+    }
+
     // Only show active products to public
     let gems;
     if (search) {
       const allGems = await gemRepository.searchGems(search, limit);
       gems = allGems.filter(gem => gem.is_active);
-    } else if (category || minPrice || maxPrice) {
+    } else if (minPrice || maxPrice) {
       gems = await gemRepository.findGemsWithFilters({
-        category,
         minPrice,
         maxPrice,
         isActive: true // Always filter for active only
@@ -56,22 +91,24 @@ export async function GET(request: NextRequest) {
     const products = gems.map(gem => ({
       id: gem.id!,
       name: gem.name,
-      description: gem.description || '',
+      description: gem.identification || '',
       price: gem.price,
       image_url: gem.images?.[0] || '',
       images: gem.images || [],
-      category: gem.category || 'Gemstone',
+      category: 'Gemstone',
       stock_quantity: gem.stock_quantity || 0,
       stock: gem.stock_quantity || 0,
       active: gem.is_active ?? true,
       is_active: gem.is_active ?? true,
       specifications: {
-        carat_weight: gem.carat_weight || 0,
+        identification: gem.identification || '',
+        weight_carats: gem.weight_carats || '',
         color: gem.color || '',
         clarity: gem.clarity || '',
-        cut: gem.cut || '',
-        origin: gem.origin || '',
-        certification: gem.certification || ''
+        shape_and_cut: gem.shape_and_cut || '',
+        dimensions: gem.dimensions || '',
+        treatments: gem.treatments || '',
+        origin: gem.origin || ''
       },
       created_at: gem.created_at || new Date().toISOString(),
       updated_at: gem.updated_at || new Date().toISOString()
@@ -114,22 +151,24 @@ export async function GET_BY_ID(id: string) {
     const product = {
       id: gem.id!,
       name: gem.name,
-      description: gem.description || '',
+      description: gem.identification || '',
       price: gem.price,
       image_url: gem.images?.[0] || '',
       images: gem.images || [],
-      category: gem.category || 'Gemstone',
+      category: 'Gemstone',
       stock_quantity: gem.stock_quantity || 0,
       stock: gem.stock_quantity || 0,
       active: gem.is_active ?? true,
       is_active: gem.is_active ?? true,
       specifications: {
-        carat_weight: gem.carat_weight || 0,
+        identification: gem.identification || '',
+        weight_carats: gem.weight_carats || '',
         color: gem.color || '',
         clarity: gem.clarity || '',
-        cut: gem.cut || '',
-        origin: gem.origin || '',
-        certification: gem.certification || ''
+        shape_and_cut: gem.shape_and_cut || '',
+        dimensions: gem.dimensions || '',
+        treatments: gem.treatments || '',
+        origin: gem.origin || ''
       },
       created_at: gem.created_at || new Date().toISOString(),
       updated_at: gem.updated_at || new Date().toISOString()

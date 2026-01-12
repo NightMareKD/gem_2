@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   ShoppingCart,
   Star,
@@ -16,6 +17,21 @@ interface CollectionPageProps {
   onAddToCart: (product: Product) => void;
 }
 
+function hasAnySpec(product: Product) {
+  const s = product.specifications;
+  if (!s) return false;
+  return !!(
+    s.identification ||
+    s.weight_carats ||
+    s.color ||
+    s.clarity ||
+    s.shape_and_cut ||
+    s.dimensions ||
+    s.treatments ||
+    s.origin
+  );
+}
+
 const CollectionPage = ({ products, onAddToCart }: CollectionPageProps) => {
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
   const [likedProducts, setLikedProducts] = useState<Set<string>>(new Set());
@@ -29,6 +45,41 @@ const CollectionPage = ({ products, onAddToCart }: CollectionPageProps) => {
     }
     setLikedProducts(newLiked);
   };
+
+  if (!products || products.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 relative overflow-hidden">
+        <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl p-10 text-center">
+            <h1 className="text-3xl md:text-5xl font-black mb-4">
+              <span className="bg-gradient-to-r from-white via-amber-200 to-orange-300 bg-clip-text text-transparent">
+                Not available
+              </span>
+            </h1>
+            <p className="text-slate-200/80 text-base md:text-lg">
+              There are no products to display right now.
+            </p>
+
+            <div className="mt-8 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-5 py-2.5 text-sm font-semibold text-black"
+              >
+                Try again
+              </button>
+              <Link
+                href="/"
+                className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/15"
+              >
+                Go home
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 relative overflow-hidden">
@@ -342,6 +393,74 @@ const CollectionPage = ({ products, onAddToCart }: CollectionPageProps) => {
                     <p className="text-sm md:text-base text-slate-300 mb-4 leading-relaxed">
                       {product.description}
                     </p>
+
+                    {hasAnySpec(product) && (
+                      <div className="mb-4 rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-slate-200/80">
+                          {product.specifications?.identification && (
+                            <div className="col-span-2">
+                              <span className="text-slate-400">Identification</span>
+                              <div className="text-slate-200">
+                                {product.specifications.identification}
+                              </div>
+                            </div>
+                          )}
+
+                          {product.specifications?.weight_carats && (
+                            <div>
+                              <span className="text-slate-400">Weight</span>
+                              <div className="text-slate-200">
+                                {product.specifications.weight_carats}
+                              </div>
+                            </div>
+                          )}
+
+                          {product.specifications?.shape_and_cut && (
+                            <div>
+                              <span className="text-slate-400">Shape / Cut</span>
+                              <div className="text-slate-200">
+                                {product.specifications.shape_and_cut}
+                              </div>
+                            </div>
+                          )}
+
+                          {product.specifications?.color && (
+                            <div>
+                              <span className="text-slate-400">Color</span>
+                              <div className="text-slate-200">{product.specifications.color}</div>
+                            </div>
+                          )}
+
+                          {product.specifications?.clarity && (
+                            <div>
+                              <span className="text-slate-400">Clarity</span>
+                              <div className="text-slate-200">{product.specifications.clarity}</div>
+                            </div>
+                          )}
+
+                          {product.specifications?.dimensions && (
+                            <div className="col-span-2">
+                              <span className="text-slate-400">Dimensions</span>
+                              <div className="text-slate-200">{product.specifications.dimensions}</div>
+                            </div>
+                          )}
+
+                          {product.specifications?.treatments && (
+                            <div className="col-span-2">
+                              <span className="text-slate-400">Treatments</span>
+                              <div className="text-slate-200">{product.specifications.treatments}</div>
+                            </div>
+                          )}
+
+                          {product.specifications?.origin && (
+                            <div className="col-span-2">
+                              <span className="text-slate-400">Origin</span>
+                              <div className="text-slate-200">{product.specifications.origin}</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Price and Cart Section */}
                     <div className="flex items-center justify-between">

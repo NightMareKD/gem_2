@@ -32,108 +32,62 @@ import {
   ShoppingCart,
 } from "lucide-react";
 
-export interface Product {
+export interface AdminGem {
   id: string;
   name: string;
-  description: string;
   price: number;
-  image_url: string;
-  category: string;
+  identification?: string;
+  weight_carats?: string;
+  color?: string;
+  clarity?: string;
+  shape_and_cut?: string;
+  dimensions?: string;
+  treatments?: string;
+  origin?: string;
+  images?: string[];
+  image_url?: string;
   stock_quantity: number;
-  active: boolean;
+  is_active: boolean;
   created_at: string;
+  updated_at?: string;
 }
 
-const CATEGORIES = [
-  "Ruby",
-  "Sapphire",
-  "Emerald",
-  "Diamond",
-  "Topaz",
-  "Amethyst",
-  "Garnet",
-  "Opal",
-  "Peridot",
-  "Aquamarine",
-  "Tanzanite",
-  "Tourmaline",
-];
-
-//api calls
-import { createProduct, getProducts } from "@/utils/api";
+function normalizeGem(gem: any): AdminGem {
+  const images: string[] = Array.isArray(gem?.images) ? gem.images : [];
+  return {
+    ...gem,
+    images,
+    image_url: gem?.image_url ?? images[0] ?? "",
+    stock_quantity: typeof gem?.stock_quantity === "number" ? gem.stock_quantity : 0,
+    is_active: !!gem?.is_active,
+    created_at: gem?.created_at ?? new Date().toISOString(),
+  } as AdminGem;
+}
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: "1",
-      name: "Ceylon Blue Sapphire",
-      description:
-        "A stunning Ceylon blue sapphire with exceptional clarity and brilliant cut. Perfect for engagement rings.",
-      price: 2500.0,
-      image_url:
-        "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=300&h=300&fit=crop",
-      category: "Sapphire",
-      stock_quantity: 5,
-      active: true,
-      created_at: "2024-01-15T10:30:00Z",
-    },
-    {
-      id: "2",
-      name: "Burmese Ruby Premium",
-      description:
-        "Rare Burmese ruby with deep red color and excellent transparency. Certified natural stone.",
-      price: 4200.0,
-      image_url:
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop",
-      category: "Ruby",
-      stock_quantity: 2,
-      active: true,
-      created_at: "2024-02-20T14:22:00Z",
-    },
-    {
-      id: "3",
-      name: "Colombian Emerald",
-      description:
-        "Premium Colombian emerald with vivid green color and minimal inclusions. Investment grade quality.",
-      price: 3800.0,
-      image_url:
-        "https://images.unsplash.com/photo-1544980919-e17526d4ed0a?w=300&h=300&fit=crop",
-      category: "Emerald",
-      stock_quantity: 0,
-      active: false,
-      created_at: "2024-01-05T09:15:00Z",
-    },
-    {
-      id: "4",
-      name: "Pink Diamond Rare",
-      description:
-        "Extremely rare pink diamond with exceptional brilliance. Perfect for luxury jewelry.",
-      price: 15000.0,
-      image_url:
-        "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=300&h=300&fit=crop",
-      category: "Diamond",
-      stock_quantity: 1,
-      active: true,
-      created_at: "2024-03-10T16:45:00Z",
-    },
-  ]);
+  const [products, setProducts] = useState<AdminGem[]>([]);
 
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
+  const [filteredProducts, setFilteredProducts] = useState<AdminGem[]>(products);
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [priceRange, setPriceRange] = useState("All");
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [editing, setEditing] = useState<Product | null>(null);
+  const [editing, setEditing] = useState<AdminGem | null>(null);
   const [form, setForm] = useState({
     name: "",
-    description: "",
     price: 0,
     image_url: "",
-    category: "Ruby",
     stock_quantity: 0,
     active: true,
+    identification: "",
+    weight_carats: "",
+    color: "",
+    clarity: "",
+    shape_and_cut: "",
+    dimensions: "",
+    treatments: "",
+    origin: "",
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -145,8 +99,20 @@ export default function ProductsPage() {
 
     async function fetchProducts() {
       try {
-        const data = await getProducts();
-        setProducts(data);
+        const response = await fetch("/api/admin/gems", {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch gems");
+        }
+
+        const data = await response.json();
+        const gems = Array.isArray(data?.gems) ? data.gems : [];
+        setProducts(gems.map(normalizeGem));
       } catch (error) {
         console.error("Error from fetch products - ", error);
       }
@@ -156,7 +122,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     applyFilters();
-  }, [products, searchQuery, categoryFilter, statusFilter, priceRange]);
+  }, [products, searchQuery, statusFilter, priceRange]);
 
   function applyFilters() {
     let filtered = [...products];
@@ -166,26 +132,19 @@ export default function ProductsPage() {
       filtered = filtered.filter(
         (product) =>
           product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.description
+          (product.identification || "")
             .toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
-          product.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Category filter
-    if (categoryFilter !== "All") {
-      filtered = filtered.filter(
-        (product) => product.category === categoryFilter
+          (product.origin || "").toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     // Status filter
     if (statusFilter !== "All") {
       if (statusFilter === "Active") {
-        filtered = filtered.filter((product) => product.active);
+        filtered = filtered.filter((product) => product.is_active);
       } else if (statusFilter === "Inactive") {
-        filtered = filtered.filter((product) => !product.active);
+        filtered = filtered.filter((product) => !product.is_active);
       } else if (statusFilter === "Out of Stock") {
         filtered = filtered.filter((product) => product.stock_quantity === 0);
       } else if (statusFilter === "Low Stock") {
@@ -218,27 +177,39 @@ export default function ProductsPage() {
   function resetForm() {
     setForm({
       name: "",
-      description: "",
       price: 0,
       image_url: "",
-      category: "Ruby",
       stock_quantity: 0,
       active: true,
+      identification: "",
+      weight_carats: "",
+      color: "",
+      clarity: "",
+      shape_and_cut: "",
+      dimensions: "",
+      treatments: "",
+      origin: "",
     });
     setSelectedFile(null);
     setError(null);
   }
 
-  function startEdit(product: Product) {
+  function startEdit(product: AdminGem) {
     setEditing(product);
     setForm({
       name: product.name,
-      description: product.description,
       price: product.price,
-      image_url: product.image_url,
-      category: product.category,
+      image_url: product.image_url || product.images?.[0] || "",
       stock_quantity: product.stock_quantity,
-      active: product.active,
+      active: product.is_active,
+      identification: product.identification || "",
+      weight_carats: product.weight_carats || "",
+      color: product.color || "",
+      clarity: product.clarity || "",
+      shape_and_cut: product.shape_and_cut || "",
+      dimensions: product.dimensions || "",
+      treatments: product.treatments || "",
+      origin: product.origin || "",
     });
     setSelectedFile(null);
     setCreating(false);
@@ -248,8 +219,17 @@ export default function ProductsPage() {
     const formData = new FormData();
     formData.append('file', file);
 
+    const csrf =
+      document.cookie
+        .split("; ")
+        .find((r) => r.startsWith("csrfToken="))
+        ?.split("=")[1] || "";
+
     const response = await fetch('/api/admin/upload', {
       method: 'POST',
+      headers: {
+        'x-csrf-token': csrf,
+      },
       body: formData,
       credentials: 'include',
     });
@@ -306,12 +286,18 @@ export default function ProductsPage() {
             body: JSON.stringify({
               id: editing.id,
               name: form.name,
-              description: form.description,
               price: form.price,
-              category: form.category,
               stock_quantity: form.stock_quantity,
               is_active: form.active,
               images: finalImageUrl ? [finalImageUrl] : [],
+              identification: form.identification,
+              weight_carats: form.weight_carats,
+              color: form.color,
+              clarity: form.clarity,
+              shape_and_cut: form.shape_and_cut,
+              dimensions: form.dimensions,
+              treatments: form.treatments,
+              origin: form.origin,
             }),
           });
 
@@ -319,22 +305,11 @@ export default function ProductsPage() {
             throw new Error("Failed to update product");
           }
 
-          const updatedProduct = await response.json();
-          console.log("Product updated:", updatedProduct);
+          const updatedGem = normalizeGem(await response.json());
+          console.log("Gem updated:", updatedGem);
 
-          // Update local state with API response
           setProducts((prev) =>
-            prev.map((p) => 
-              p.id === editing.id 
-                ? { 
-                    ...p, 
-                    ...form, 
-                    image_url: finalImageUrl,
-                    // Ensure we update the actual ID from API if it changed
-                    id: updatedProduct.id || p.id
-                  } 
-                : p
-            )
+            prev.map((p) => (p.id === updatedGem.id ? updatedGem : p))
           );
         } catch (error) {
           console.error("Error updating product:", error);
@@ -344,15 +319,6 @@ export default function ProductsPage() {
         
         setEditing(null);
       } else {
-        // Create new product
-        const newProduct: Product = {
-          id: "RGP-" + Date.now().toString(),
-          ...form,
-          image_url: finalImageUrl,
-          created_at: new Date().toISOString(),
-        };
-
-        const { id, created_at, ...rest } = newProduct;
         try {
           // Call API to create product
           const csrf =
@@ -369,13 +335,19 @@ export default function ProductsPage() {
             },
             credentials: "include",
             body: JSON.stringify({
-              name: rest.name,
-              description: rest.description,
-              price: rest.price,
-              category: rest.category,
-              stock_quantity: rest.stock_quantity,
-              is_active: rest.active,
+              name: form.name,
+              price: form.price,
+              stock_quantity: form.stock_quantity,
+              is_active: form.active,
               images: finalImageUrl ? [finalImageUrl] : [],
+              identification: form.identification,
+              weight_carats: form.weight_carats,
+              color: form.color,
+              clarity: form.clarity,
+              shape_and_cut: form.shape_and_cut,
+              dimensions: form.dimensions,
+              treatments: form.treatments,
+              origin: form.origin,
             }),
           });
 
@@ -383,17 +355,10 @@ export default function ProductsPage() {
             throw new Error("Failed to create product");
           }
 
-          const createdProduct = await response.json();
-          console.log("Product created:", createdProduct);
+          const createdGem = normalizeGem(await response.json());
+          console.log("Gem created:", createdGem);
 
-          // Update local state with the created product from API
-          setProducts((prev) => [
-            {
-              ...newProduct,
-              id: createdProduct.id,
-            },
-            ...prev,
-          ]);
+          setProducts((prev) => [createdGem, ...prev]);
         } catch (error) {
           console.error("Error creating product:", error);
           setError("Failed to create product");
@@ -411,7 +376,7 @@ export default function ProductsPage() {
     }
   }
 
-  async function deleteProduct(product: Product) {
+  async function deleteProduct(product: AdminGem) {
     if (!confirm(`Are you sure you want to delete "${product.name}"?`)) return;
 
     setLoading(true);
@@ -447,7 +412,7 @@ export default function ProductsPage() {
     }
   }
 
-  async function toggleActive(product: Product) {
+  async function toggleActive(product: AdminGem) {
     setLoading(true);
     try {
       // Call API to update product
@@ -466,7 +431,7 @@ export default function ProductsPage() {
         credentials: "include",
         body: JSON.stringify({
           id: product.id,
-          is_active: !product.active,
+          is_active: !product.is_active,
         }),
       });
 
@@ -476,7 +441,9 @@ export default function ProductsPage() {
 
       // Update local state
       setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? { ...p, active: !p.active } : p))
+        prev.map((p) =>
+          p.id === product.id ? { ...p, is_active: !p.is_active } : p
+        )
       );
       console.log("Product updated successfully");
     } catch (err) {
@@ -513,7 +480,7 @@ export default function ProductsPage() {
 
   const stats = {
     total: products.length,
-    active: products.filter((p) => p.active).length,
+    active: products.filter((p) => p.is_active).length,
     outOfStock: products.filter((p) => p.stock_quantity === 0).length,
     lowStock: products.filter(
       (p) => p.stock_quantity > 0 && p.stock_quantity <= 5
@@ -664,44 +631,6 @@ export default function ProductsPage() {
 
               <div className="space-y-3">
                 <Label className="flex items-center text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  <Package className="h-4 w-4 mr-2" />
-                  Category
-                </Label>
-                <Select
-                  value={form.category}
-                  onValueChange={(v) => setForm({ ...form, category: v })}
-                >
-                  <SelectTrigger className="h-12 bg-white/60 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600 rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-3 md:col-span-2">
-                <Label className="flex items-center text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  <Edit3 className="h-4 w-4 mr-2" />
-                  Description
-                </Label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) =>
-                    setForm({ ...form, description: e.target.value })
-                  }
-                  className="w-full h-24 p-3 bg-white/60 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 rounded-xl resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="Detailed description of the gemstone..."
-                  required
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label className="flex items-center text-sm font-semibold text-slate-700 dark:text-slate-300">
                   <DollarSign className="h-4 w-4 mr-2" />
                   Price (USD)
                 </Label>
@@ -737,6 +666,112 @@ export default function ProductsPage() {
                   className="h-12 bg-white/60 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600 rounded-xl"
                   placeholder="5"
                   required
+                />
+              </div>
+
+              <div className="space-y-3 md:col-span-2">
+                <Label className="flex items-center text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <Edit3 className="h-4 w-4 mr-2" />
+                  Identification
+                </Label>
+                <Input
+                  value={form.identification}
+                  onChange={(e) =>
+                    setForm({ ...form, identification: e.target.value })
+                  }
+                  className="h-12 bg-white/60 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600 rounded-xl"
+                  placeholder="Natural Blue Sapphire"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label className="flex items-center text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <Package className="h-4 w-4 mr-2" />
+                  Weight (Carats)
+                </Label>
+                <Input
+                  value={form.weight_carats}
+                  onChange={(e) => setForm({ ...form, weight_carats: e.target.value })}
+                  className="h-12 bg-white/60 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600 rounded-xl"
+                  placeholder="2.50"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label className="flex items-center text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <Package className="h-4 w-4 mr-2" />
+                  Shape / Cut
+                </Label>
+                <Input
+                  value={form.shape_and_cut}
+                  onChange={(e) => setForm({ ...form, shape_and_cut: e.target.value })}
+                  className="h-12 bg-white/60 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600 rounded-xl"
+                  placeholder="Oval"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label className="flex items-center text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <Package className="h-4 w-4 mr-2" />
+                  Color
+                </Label>
+                <Input
+                  value={form.color}
+                  onChange={(e) => setForm({ ...form, color: e.target.value })}
+                  className="h-12 bg-white/60 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600 rounded-xl"
+                  placeholder="Royal Blue"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label className="flex items-center text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <Package className="h-4 w-4 mr-2" />
+                  Clarity
+                </Label>
+                <Input
+                  value={form.clarity}
+                  onChange={(e) => setForm({ ...form, clarity: e.target.value })}
+                  className="h-12 bg-white/60 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600 rounded-xl"
+                  placeholder="VS"
+                />
+              </div>
+
+              <div className="space-y-3 md:col-span-2">
+                <Label className="flex items-center text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <Package className="h-4 w-4 mr-2" />
+                  Dimensions
+                </Label>
+                <Input
+                  value={form.dimensions}
+                  onChange={(e) => setForm({ ...form, dimensions: e.target.value })}
+                  className="h-12 bg-white/60 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600 rounded-xl"
+                  placeholder="8.0 x 6.0 x 4.2 mm"
+                />
+              </div>
+
+              <div className="space-y-3 md:col-span-2">
+                <Label className="flex items-center text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <Package className="h-4 w-4 mr-2" />
+                  Treatments
+                </Label>
+                <Input
+                  value={form.treatments}
+                  onChange={(e) => setForm({ ...form, treatments: e.target.value })}
+                  className="h-12 bg-white/60 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600 rounded-xl"
+                  placeholder="Heat"
+                />
+              </div>
+
+              <div className="space-y-3 md:col-span-2">
+                <Label className="flex items-center text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <Package className="h-4 w-4 mr-2" />
+                  Origin
+                </Label>
+                <Input
+                  value={form.origin}
+                  onChange={(e) => setForm({ ...form, origin: e.target.value })}
+                  className="h-12 bg-white/60 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600 rounded-xl"
+                  placeholder="Sri Lanka"
                 />
               </div>
 
@@ -885,7 +920,7 @@ export default function ProductsPage() {
       {/* Filters Section */}
       <Card className="backdrop-blur-md bg-white/80 dark:bg-slate-800/80 border-0 shadow-lg rounded-xl">
         <CardContent className="p-6">
-          <div className="grid gap-4 md:grid-cols-5">
+          <div className="grid gap-4 md:grid-cols-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
@@ -895,20 +930,6 @@ export default function ProductsPage() {
                 className="pl-10 h-11 bg-white/60 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600 rounded-xl"
               />
             </div>
-
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="h-11 bg-white/60 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600 rounded-xl">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All Categories</SelectItem>
-                {CATEGORIES.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="h-11 bg-white/60 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600 rounded-xl">
@@ -939,7 +960,6 @@ export default function ProductsPage() {
             <Button
               onClick={() => {
                 setSearchQuery("");
-                setCategoryFilter("All");
                 setStatusFilter("All");
                 setPriceRange("All");
               }}
@@ -980,12 +1000,12 @@ export default function ProductsPage() {
               <div className="absolute top-3 right-3 flex flex-col space-y-2">
                 <Badge
                   className={`bg-gradient-to-r ${
-                    product.active
+                    product.is_active
                       ? "from-emerald-500 to-teal-500"
                       : "from-red-500 to-pink-500"
                   } text-white border-0 text-xs`}
                 >
-                  {product.active ? "Active" : "Inactive"}
+                  {product.is_active ? "Active" : "Inactive"}
                 </Badge>
                 <Badge
                   className={`bg-gradient-to-r ${getStockBadgeColor(
@@ -993,11 +1013,6 @@ export default function ProductsPage() {
                   )} text-white border-0 text-xs`}
                 >
                   {getStockStatus(product.stock_quantity)}
-                </Badge>
-              </div>
-              <div className="absolute top-3 left-3">
-                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 text-xs">
-                  {product.category}
                 </Badge>
               </div>
             </div>
@@ -1009,7 +1024,7 @@ export default function ProductsPage() {
                     {product.name}
                   </h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mt-1">
-                    {product.description}
+                    {product.identification || ""}
                   </p>
                 </div>
 
@@ -1044,7 +1059,7 @@ export default function ProductsPage() {
                     onClick={() => toggleActive(product)}
                     className="h-8 text-xs border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
-                    {product.active ? (
+                    {product.is_active ? (
                       <EyeOff className="h-3 w-3" />
                     ) : (
                       <Eye className="h-3 w-3" />

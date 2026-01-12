@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { getRepositoryFactory } from "@/lib/repositories";
 import { isAdmin } from "@/lib/auth/roles";
+import { generateCSRFToken } from '@/lib/security/auth';
 
 export async function POST(request: NextRequest) {
   let response: NextResponse;
@@ -138,6 +139,15 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
+      path: '/',
+    });
+
+    // CSRF double-submit cookie (readable by JS so it can be sent as a header)
+    response.cookies.set('csrfToken', generateCSRFToken(), {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60, // 24 hours
       path: '/',
     });
 

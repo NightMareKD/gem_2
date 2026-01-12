@@ -195,10 +195,8 @@ export default function AdminLoginPage() {
         // Set session marker BEFORE redirect to prevent race condition in layout
         sessionStorage.setItem('adminSessionActive', 'true');
         sessionStorage.setItem('lastActivity', Date.now().toString());
-        // Small delay to show success message, then redirect
-        setTimeout(() => {
-          router.replace("/admin");
-        }, 500);
+        // Redirect immediately after login
+        router.replace("/admin");
         return;
       }
       if (data.requires2FA) {

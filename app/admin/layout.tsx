@@ -82,55 +82,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     router.push(`/admin/login?reason=${reason}`);
   }, [router]);
 
-  // Reset inactivity timer
-  const resetInactivityTimer = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    
-    // Update last activity time
-    sessionStorage.setItem('lastActivity', Date.now().toString());
-    
-    // Set new timeout for 1 minute
-    timeoutRef.current = setTimeout(() => {
-      if (user && pathname !== "/admin/login") {
-        performLogout('session_timeout');
-      }
-    }, SESSION_TIMEOUT_MS);
-  }, [user, pathname, performLogout]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Set up activity listeners for inactivity timeout
-  useEffect(() => {
-    if (!user || pathname === "/admin/login") return;
-
-    // Mark session as active in sessionStorage (cleared on tab close)
-    sessionStorage.setItem('adminSessionActive', 'true');
-    
-    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
-    
-    // Reset timer on any activity
-    const handleActivity = () => resetInactivityTimer();
-    
-    events.forEach(event => {
-      document.addEventListener(event, handleActivity, { passive: true });
-    });
-    
-    // Start the initial timer
-    resetInactivityTimer();
-    
-    return () => {
-      events.forEach(event => {
-        document.removeEventListener(event, handleActivity);
-      });
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [user, pathname, resetInactivityTimer]);
+  // Removed inactivity auto-logout logic
 
   const checkAuth = useCallback(async () => {
     // Skip auth check on login page
