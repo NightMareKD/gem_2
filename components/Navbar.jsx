@@ -21,7 +21,7 @@ function Navbar() {
   // Navigation items with icons
   const navItems = [
     { name: "Home", href: "/", icon: <Crown size={22.4} /> },
-    { name: "Products", href: "/collection", icon: <Diamond size={22.4} /> },
+    { name: "Gems", href: "/collection", icon: <Diamond size={22.4} /> },
     { name: "Jwellery", href: "/jwellery", icon: <Gem size={22.4} /> },
     { name: "Academy", href: "/academy", icon: <Sparkles size={22.4} /> },
     { name: "About", href: "/about", icon: <Crown size={22.4} /> },
@@ -189,7 +189,7 @@ function Navbar() {
                       </span>
                       <span className="font-medium">{item.name}</span>
                       <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-                        →
+                        &rarr;
                       </span>
                     </Link>
                   </motion.div>

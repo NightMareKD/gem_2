@@ -436,12 +436,23 @@ function Page() {
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => {
-                    exploreBtnHandler();
+                    toast.success("Navigating to Jwellery!", { duration: 1200 });
+                    setTimeout(() => {
+                      router.push("/jwellery");
+                    }, 1200);
                   }}
                 >
                   <Sparkles size={20} />
-                  Explore Full Collection
+                  Explore Jwellery
                 </motion.button>
+
+                <button
+                  type="button"
+                  className="mt-4 text-sm text-amber-200/90 hover:text-amber-200 underline"
+                  onClick={() => exploreBtnHandler()}
+                >
+                  Browse Gem Collection
+                </button>
               </motion.div>
 
               {/* Right: Product Grid */}

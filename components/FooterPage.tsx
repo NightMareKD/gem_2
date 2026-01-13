@@ -56,6 +56,7 @@ const Footer = () => {
       { name: "Necklaces", href: "/collections/necklaces" },
       { name: "Earrings", href: "/collections/earrings" },
       { name: "Bracelets", href: "/collections/bracelets" },
+      { name: "Jwellery", href: "/jwellery" },
       { name: "Gemstones", href: "/collections/gemstones" },
     ],
     services: [
@@ -203,7 +204,7 @@ const Footer = () => {
                   Collections
                 </h4>
                 <ul className="space-y-[0.84rem]">
-                  {footerLinks.collections.slice(0, 3).map((link) => (
+                  {footerLinks.collections.map((link) => (
                     <li key={link.name}>
                       <a
                         href={link.href}
