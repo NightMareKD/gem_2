@@ -15,6 +15,51 @@ function getOrderRepository() {
   return getRepositoryFactory(getSupabaseClient()).getOrderRepository();
 }
 
+// ✅ Jwellery
+export async function getJwelleryProducts(): Promise<Product[]> {
+  try {
+    const response = await fetch('/api/jwellery', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.products || [];
+  } catch (error) {
+    console.error('Error fetching jwellery products:', error);
+    return [];
+  }
+}
+
+export async function getJwelleryProductById(id: string): Promise<Product> {
+  try {
+    const response = await fetch(`/api/jwellery?id=${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      throw new Error('Product not found');
+    }
+
+    const data = await response.json();
+    return data.product;
+  } catch (error) {
+    console.error('Error fetching jwellery product:', error);
+    throw error;
+  }
+}
+
 // ✅ Products (Gems)
 export async function getProducts(): Promise<Product[]> {
   try {

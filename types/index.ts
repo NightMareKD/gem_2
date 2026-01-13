@@ -21,6 +21,17 @@ export interface Product {
     dimensions?: string;
     treatments?: string;
     origin?: string;
+
+    // Jwellery certification fields
+    metal_type_purity?: string;
+    gross_weight_grams?: number;
+    gemstone_type?: string;
+    carat_weight?: number;
+    cut_and_shape?: string;
+    color_and_clarity?: string;
+    report_number?: string;
+    report_date?: string;
+    authorized_seal_signature?: string;
   };
   created_at: string;
   updated_at?: string;

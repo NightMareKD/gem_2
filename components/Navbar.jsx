@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
-import { Sparkles, Diamond, Crown } from "lucide-react";
+import { Sparkles, Diamond, Crown, Gem } from "lucide-react";
 
 function Navbar() {
   const pathname = usePathname();
@@ -22,6 +22,7 @@ function Navbar() {
   const navItems = [
     { name: "Home", href: "/", icon: <Crown size={22.4} /> },
     { name: "Products", href: "/collection", icon: <Diamond size={22.4} /> },
+    { name: "Jwellery", href: "/jwellery", icon: <Gem size={22.4} /> },
     { name: "Academy", href: "/academy", icon: <Sparkles size={22.4} /> },
     { name: "About", href: "/about", icon: <Crown size={22.4} /> },
   ];

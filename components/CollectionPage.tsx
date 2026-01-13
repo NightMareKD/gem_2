@@ -14,7 +14,7 @@ import { Product } from "../types";
 
 interface CollectionPageProps {
   products: Product[];
-  onAddToCart: (product: Product) => void;
+  onAddToCart?: (product: Product) => void;
 }
 
 function hasAnySpec(product: Product) {
@@ -29,6 +29,16 @@ function hasAnySpec(product: Product) {
     s.dimensions ||
     s.treatments ||
     s.origin
+    ||
+    s.metal_type_purity ||
+    s.gross_weight_grams !== undefined ||
+    s.gemstone_type ||
+    s.carat_weight !== undefined ||
+    s.cut_and_shape ||
+    s.color_and_clarity ||
+    s.report_number ||
+    s.report_date ||
+    s.authorized_seal_signature
   );
 }
 
@@ -471,19 +481,21 @@ const CollectionPage = ({ products, onAddToCart }: CollectionPageProps) => {
                         ${product.price.toFixed(2)}
                       </motion.span>
 
-                      <motion.button
-                        onClick={() => onAddToCart(product)}
-                        disabled={product.stock_quantity === 0}
-                        className="relative bg-gradient-to-r from-amber-500 to-orange-600 text-black px-4 py-2 rounded-xl font-bold hover:from-amber-400 hover:to-orange-500 transition-all duration-300 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl text-sm md:text-base overflow-hidden"
-                        whileHover={{ scale: 1.05, y: -1 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        {/* Button glow effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-amber-300 to-orange-400 opacity-0 hover:opacity-30 transition-opacity rounded-xl" />
+                     {onAddToCart ? (
+                       <motion.button
+                         onClick={() => onAddToCart(product)}
+                         disabled={product.stock_quantity === 0}
+                         className="relative bg-gradient-to-r from-amber-500 to-orange-600 text-black px-4 py-2 rounded-xl font-bold hover:from-amber-400 hover:to-orange-500 transition-all duration-300 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl text-sm md:text-base overflow-hidden"
+                         whileHover={{ scale: 1.05, y: -1 }}
+                         whileTap={{ scale: 0.95 }}
+                       >
+                         {/* Button glow effect */}
+                         <div className="absolute inset-0 bg-gradient-to-r from-amber-300 to-orange-400 opacity-0 hover:opacity-30 transition-opacity rounded-xl" />
 
-                        <ShoppingCart className="w-4 h-4 relative z-10" />
-                        <span className="relative z-10">Add to Cart</span>
-                      </motion.button>
+                         <ShoppingCart className="w-4 h-4 relative z-10" />
+                         <span className="relative z-10">Add to Cart</span>
+                       </motion.button>
+                     ) : null}
                     </div>
 
                     {/* Decorative diamond icon */}

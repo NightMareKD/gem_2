@@ -135,6 +135,64 @@ export interface Database {
           updated_at?: string
         }
       }
+      jwellery: {
+        Row: {
+          id: string
+          name: string
+          price: number
+          metal_type_purity: string | null
+          gross_weight_grams: number | null
+          gemstone_type: string | null
+          carat_weight: number | null
+          cut_and_shape: string | null
+          color_and_clarity: string | null
+          report_number: string | null
+          report_date: string | null
+          authorized_seal_signature: string | null
+          images: string[] | null
+          is_active: boolean
+          stock_quantity: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          price: number
+          metal_type_purity?: string | null
+          gross_weight_grams?: number | null
+          gemstone_type?: string | null
+          carat_weight?: number | null
+          cut_and_shape?: string | null
+          color_and_clarity?: string | null
+          report_number?: string | null
+          report_date?: string | null
+          authorized_seal_signature?: string | null
+          images?: string[] | null
+          is_active?: boolean
+          stock_quantity?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          price?: number
+          metal_type_purity?: string | null
+          gross_weight_grams?: number | null
+          gemstone_type?: string | null
+          carat_weight?: number | null
+          cut_and_shape?: string | null
+          color_and_clarity?: string | null
+          report_number?: string | null
+          report_date?: string | null
+          authorized_seal_signature?: string | null
+          images?: string[] | null
+          is_active?: boolean
+          stock_quantity?: number
+          updated_at?: string
+        }
+      }
       orders: {
         Row: {
           id: string

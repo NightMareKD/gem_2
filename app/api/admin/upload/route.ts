@@ -31,9 +31,20 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
+    const folderRaw = (formData.get('folder') as string | null) || 'gems';
+    const folder = folderRaw.trim().toLowerCase();
+
     if (!file) {
       return NextResponse.json(
         { error: "No file provided" },
+        { status: 400 }
+      );
+    }
+
+    // Validate folder (prevent path traversal / arbitrary prefixes)
+    if (!/^[a-z0-9_-]+$/.test(folder)) {
+      return NextResponse.json(
+        { error: "Invalid folder name" },
         { status: 400 }
       );
     }
@@ -59,7 +70,7 @@ export async function POST(request: NextRequest) {
     const fileName = file.name || 'upload';
     const fileExt = fileName.includes('.') ? fileName.split('.').pop() : 'jpg'; // Default to jpg if no extension
     const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `gems/${uniqueFileName}`;
+    const filePath = `${folder}/${uniqueFileName}`;
 
     // Use service role client for storage operations (bypasses RLS)
     const serviceSupabase = createClient(

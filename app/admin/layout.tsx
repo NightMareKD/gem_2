@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Users,
   Gem,
+  Diamond,
   ShoppingCart,
   FileText,
   Settings,
@@ -32,6 +33,7 @@ const navigationItems = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Gems", href: "/admin/gems", icon: Gem },
+  { name: "Jwellery", href: "/admin/jwellery", icon: Diamond },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { name: "Logs", href: "/admin/logs", icon: FileText },
   {
